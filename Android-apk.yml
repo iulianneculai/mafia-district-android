@@ -1,0 +1,32 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Repository klonen
+      uses: actions/checkout@v4
+
+    - name: JDK einrichten
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Zum Android-Wrapper Ordner wechseln und Build starten
+      run: |
+        cd android-wrapper
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: APK-Datei hochladen (Artefakt)
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: android-wrapper/app/build
