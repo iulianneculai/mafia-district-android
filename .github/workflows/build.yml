@@ -1,1 +1,43 @@
+name: Build Mafia District APK
 
+on:
+workflow_dispatch:
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+
+  - name: Set up Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Find Android project
+    run: |
+      find . -maxdepth 5 \( -name gradlew -o -name build.gradle -o -name build.gradle.kts \) -print
+
+  - name: Build APK
+    run: |
+      if [ -f gradlew ]; then
+        chmod +x gradlew
+        ./gradlew assembleDebug
+      elif [ -f android-wrapper/gradlew ]; then
+        cd android-wrapper
+        chmod +x gradlew
+        ./gradlew assembleDebug
+      else
+        echo "Android Gradle project not found at expected location."
+        exit 1
+      fi
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: mafia-district-apk
+      path: '**/build/outputs/apk/debug/*.apk'
+      if-no-files-found: error
